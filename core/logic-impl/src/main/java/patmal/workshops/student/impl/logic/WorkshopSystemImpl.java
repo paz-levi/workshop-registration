@@ -30,6 +30,8 @@ public class WorkshopSystemImpl implements WorkshopSystem {
     private static final Logger LOG = LogManager.getLogger(WorkshopSystemImpl.class);
     private static final EmailValidator EMAIL_VALIDATOR = EmailValidator.getInstance();
 
+    private final JsonExporter jsonExporter = new JsonExporter();
+
     private final LinkedHashMap<String, InstructorImpl> instructors = new LinkedHashMap<>();
     private final LinkedHashMap<String, StudentImpl> students = new LinkedHashMap<>();
     private final LinkedHashMap<Integer, WorkshopImpl> workshops = new LinkedHashMap<>();
@@ -225,20 +227,21 @@ public class WorkshopSystemImpl implements WorkshopSystem {
         return new IllegalArgumentException(message);
     }
 
-    // TODO: temporary stubs; to be implemented with a JSON library (section 4.3 of the exercise).
-
     @Override
     public void exportInstructorsDataToJson(File targetFileName) {
-        throw new UnsupportedOperationException("Not implemented yet");
+        jsonExporter.exportInstructors(getInstructors(), getTeams(), targetFileName);
+        LOG.info("Exported instructors data to {}", targetFileName);
     }
 
     @Override
     public void exportStudentsDataToJson(File targetFileName) {
-        throw new UnsupportedOperationException("Not implemented yet");
+        jsonExporter.exportStudents(getStudents(), getTeams(), targetFileName);
+        LOG.info("Exported students data to {}", targetFileName);
     }
 
     @Override
     public void exportTeamsDataToJson(File targetFileName) {
-        throw new UnsupportedOperationException("Not implemented yet");
+        jsonExporter.exportTeams(getTeams(), targetFileName);
+        LOG.info("Exported teams data to {}", targetFileName);
     }
 }
