@@ -30,4 +30,8 @@ bin/
 .DS_Store
 
 ### Maven ###
-target/
+target/instructors.json
+students.json
+teams.json
+.idea/
+*.iml
