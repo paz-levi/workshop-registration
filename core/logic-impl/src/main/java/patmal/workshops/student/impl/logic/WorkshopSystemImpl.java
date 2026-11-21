@@ -1,5 +1,6 @@
 package patmal.workshops.student.impl.logic;
 
+import org.apache.commons.validator.routines.EmailValidator;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import patmal.workshops.api.logic.WorkshopSystem;
@@ -27,6 +28,7 @@ import java.util.Set;
 public class WorkshopSystemImpl implements WorkshopSystem {
 
     private static final Logger LOG = LogManager.getLogger(WorkshopSystemImpl.class);
+    private static final EmailValidator EMAIL_VALIDATOR = EmailValidator.getInstance();
 
     private final LinkedHashMap<String, InstructorImpl> instructors = new LinkedHashMap<>();
     private final LinkedHashMap<String, StudentImpl> students = new LinkedHashMap<>();
@@ -38,6 +40,7 @@ public class WorkshopSystemImpl implements WorkshopSystem {
 
     @Override
     public Instructor createInstructor(String id, String name, String email) {
+        requireValidEmail(email);
         if (instructors.containsKey(id)) {
             throw reject("Instructor already exists: " + id);
         }
@@ -83,6 +86,7 @@ public class WorkshopSystemImpl implements WorkshopSystem {
 
     @Override
     public Student createStudent(String id, String name, String email) {
+        requireValidEmail(email);
         if (students.containsKey(id)) {
             throw reject("Student already exists: " + id);
         }
@@ -206,6 +210,13 @@ public class WorkshopSystemImpl implements WorkshopSystem {
             }
         }
         return result;
+    }
+
+    /** Rejects null and malformed e-mail addresses. */
+    private void requireValidEmail(String email) {
+        if (!EMAIL_VALIDATOR.isValid(email)) {
+            throw reject("Invalid e-mail address: " + email);
+        }
     }
 
     /** Logs a rejected operation at warn level and returns the exception to throw. */
