@@ -21,6 +21,7 @@
 
         <api.version>2.0</api.version>
         <tester.version>2.0</tester.version>
+        <log4j.version>2.26.1</log4j.version>
     </properties>
 
     <dependencyManagement>
@@ -49,6 +50,16 @@
                 <groupId>${project.groupId}</groupId>
                 <artifactId>logic-impl</artifactId>
                 <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-api</artifactId>
+                <version>${log4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-core</artifactId>
+                <version>${log4j.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
