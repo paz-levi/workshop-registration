@@ -3,6 +3,8 @@ out/
 !**/src/main/**/out/
 !**/src/test/**/out/
 .kotlin
+.idea/
+*.iml
 
 ### Eclipse ###
 .apt_generated
@@ -30,8 +32,9 @@ bin/
 .DS_Store
 
 ### Maven ###
-target/instructors.json
+target/
+
+### Program output ###
+instructors.json
 students.json
 teams.json
-.idea/
-*.iml
