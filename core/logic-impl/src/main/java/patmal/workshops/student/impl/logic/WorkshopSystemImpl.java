@@ -1,5 +1,7 @@
 package patmal.workshops.student.impl.logic;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import patmal.workshops.api.logic.WorkshopSystem;
 import patmal.workshops.api.model.Instructor;
 import patmal.workshops.api.model.Student;
@@ -24,6 +26,8 @@ import java.util.Set;
  */
 public class WorkshopSystemImpl implements WorkshopSystem {
 
+    private static final Logger LOG = LogManager.getLogger(WorkshopSystemImpl.class);
+
     private final LinkedHashMap<String, InstructorImpl> instructors = new LinkedHashMap<>();
     private final LinkedHashMap<String, StudentImpl> students = new LinkedHashMap<>();
     private final LinkedHashMap<Integer, WorkshopImpl> workshops = new LinkedHashMap<>();
@@ -35,10 +39,11 @@ public class WorkshopSystemImpl implements WorkshopSystem {
     @Override
     public Instructor createInstructor(String id, String name, String email) {
         if (instructors.containsKey(id)) {
-            throw new IllegalArgumentException("Instructor already exists: " + id);
+            throw reject("Instructor already exists: " + id);
         }
         InstructorImpl instructor = new InstructorImpl(id, name, email);
         instructors.put(id, instructor);
+        LOG.info("Created instructor {} ({})", id, name);
         return instructor;
     }
 
@@ -47,19 +52,20 @@ public class WorkshopSystemImpl implements WorkshopSystem {
         int id = nextWorkshopId++;
         WorkshopImpl workshop = new WorkshopImpl(id, name, description);
         workshops.put(id, workshop);
+        LOG.info("Created workshop {} ({})", id, name);
         return workshop;
     }
 
     @Override
     public void associateWorkshopWithInstructor(Instructor instructor, Workshop workshop) {
         if (instructor == null || workshop == null) {
-            throw new IllegalArgumentException("Instructor and workshop must not be null");
+            throw reject("Instructor and workshop must not be null");
         }
         if (instructors.get(instructor.getId()) != instructor) {
-            throw new IllegalArgumentException("Instructor is not registered");
+            throw reject("Instructor is not registered");
         }
         if (workshops.get(workshop.getId()) != workshop) {
-            throw new IllegalArgumentException("Workshop is not registered");
+            throw reject("Workshop is not registered");
         }
         InstructorImpl instructorImpl = (InstructorImpl) instructor;
         WorkshopImpl workshopImpl = (WorkshopImpl) workshop;
@@ -68,42 +74,44 @@ public class WorkshopSystemImpl implements WorkshopSystem {
             return;
         }
         if (current != null) {
-            throw new IllegalArgumentException("Workshop already has a different instructor");
+            throw reject("Workshop already has a different instructor");
         }
         workshopImpl.setInstructor(instructorImpl);
         instructorImpl.addWorkshop(workshopImpl);
+        LOG.info("Associated workshop {} with instructor {}", workshop.getId(), instructor.getId());
     }
 
     @Override
     public Student createStudent(String id, String name, String email) {
         if (students.containsKey(id)) {
-            throw new IllegalArgumentException("Student already exists: " + id);
+            throw reject("Student already exists: " + id);
         }
         StudentImpl student = new StudentImpl(id, name, email);
         students.put(id, student);
+        LOG.info("Created student {} ({})", id, name);
         return student;
     }
 
     @Override
     public Team createTeam(String name, Workshop workshop, List<String> memberIds) {
         if (workshop == null || workshops.get(workshop.getId()) != workshop) {
-            throw new IllegalArgumentException("Workshop is not registered");
+            throw reject("Workshop is not registered");
         }
         if (memberIds == null) {
-            throw new IllegalArgumentException("memberIds must not be null");
+            throw reject("memberIds must not be null");
         }
         Set<String> seen = new HashSet<>();
         List<StudentImpl> members = new ArrayList<>();
         for (String memberId : memberIds) {
             if (!seen.add(memberId)) {
-                throw new IllegalArgumentException("Duplicate student id: " + memberId);
+                throw reject("Duplicate student id: " + memberId);
             }
             StudentImpl student = students.get(memberId);
             if (student == null) {
-                throw new IllegalArgumentException("Unknown student id: " + memberId);
+                throw reject("Unknown student id: " + memberId);
             }
             if (student.getTeamName() != null) {
-                throw new IllegalArgumentException("Student already in a team: " + memberId);
+                throw reject("Student already in a team: " + memberId);
             }
             members.add(student);
         }
@@ -115,6 +123,7 @@ public class WorkshopSystemImpl implements WorkshopSystem {
             student.setTeam(team);
         }
         teams.put(id, team);
+        LOG.info("Created team {} ({}) in workshop {} with {} students", id, name, workshop.getId(), members.size());
         return team;
     }
 
@@ -197,6 +206,12 @@ public class WorkshopSystemImpl implements WorkshopSystem {
             }
         }
         return result;
+    }
+
+    /** Logs a rejected operation at warn level and returns the exception to throw. */
+    private IllegalArgumentException reject(String message) {
+        LOG.warn(message);
+        return new IllegalArgumentException(message);
     }
 
     // TODO: temporary stubs; to be implemented with a JSON library (section 4.3 of the exercise).
