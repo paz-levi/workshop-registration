@@ -4,15 +4,19 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import patmal.workshops.api.logic.WorkshopSystem;
 import patmal.workshops.api.model.Instructor;
+import patmal.workshops.api.model.Student;
 import patmal.workshops.api.model.Workshop;
 import patmal.workshops.student.impl.logic.WorkshopSystemImpl;
 
 import java.io.File;
+import java.io.UncheckedIOException;
 import java.util.List;
 
 public class Main {
 
     private static final Logger LOG = LogManager.getLogger(Main.class);
+    private static final String DEFAULT_CSV = "students.csv";
+    private static final String USAGE = "Usage: java -jar workshop-cli.jar [students.csv]";
 
     public static void main(String[] args) {
         WorkshopSystem system = new WorkshopSystemImpl();
@@ -24,11 +28,23 @@ public class Main {
         system.associateWorkshopWithInstructor(dana, javaWorkshop);
         system.associateWorkshopWithInstructor(dana, mavenWorkshop);
 
-        // Several students
-        system.createStudent("s1", "Alice Cohen", "alice@students.edu");
-        system.createStudent("s2", "Bob Friedman", "bob@students.edu");
-        system.createStudent("s3", "Carol Mizrahi", "carol@students.edu");
-        system.createStudent("s4", "David Peretz", "david@students.edu");
+        // Students come from a CSV file
+        String path = args.length > 0 ? args[0] : DEFAULT_CSV;
+        File source = new File(path);
+        if (!source.isFile()) {
+            LOG.error("Student file not found: {}", source.getAbsolutePath());
+            LOG.error(USAGE);
+            System.exit(1);
+        }
+        List<Student> imported;
+        try {
+            imported = system.importStudentDataFromFile(source);
+        } catch (IllegalArgumentException | UncheckedIOException e) {
+            LOG.error("Cannot import students from {}: {}", path, e.getMessage());
+            System.exit(1);
+            return;
+        }
+        LOG.info("Imported {} students from {}", imported.size(), source.getAbsolutePath());
 
         // Two teams; s4 stays free
         system.createTeam("Alpha", javaWorkshop, List.of("s1", "s2"));

@@ -28,6 +28,9 @@ class CsvImporter {
     private static final List<String> EXPECTED_HEADER = List.of("id", "name", "email");
 
     List<Student> importStudents(WorkshopSystem system, File source) {
+        if (source == null) {
+            throw new IllegalArgumentException("source file is null");
+        }
         CSVFormat format = CSVFormat.DEFAULT.builder()
                 .setHeader()
                 .setSkipHeaderRecord(true)
@@ -35,9 +38,14 @@ class CsvImporter {
         List<Student> imported = new ArrayList<>();
         try (Reader reader = Files.newBufferedReader(source.toPath(), StandardCharsets.UTF_8);
              CSVParser parser = format.parse(reader)) {
-            if (!EXPECTED_HEADER.equals(parser.getHeaderNames())) {
+            // A UTF-8 BOM is not stripped by the reader; it would stick to the first header name.
+            List<String> header = new ArrayList<>(parser.getHeaderNames());
+            if (!header.isEmpty() && header.get(0).startsWith("\uFEFF")) {
+                header.set(0, header.get(0).substring(1));
+            }
+            if (!EXPECTED_HEADER.equals(header)) {
                 throw new IllegalArgumentException(
-                        "CSV header must be id,name,email but was " + parser.getHeaderNames());
+                        "CSV header must be id,name,email but was " + header);
             }
             for (CSVRecord record : parser) {
                 if (record.size() != EXPECTED_HEADER.size()) {

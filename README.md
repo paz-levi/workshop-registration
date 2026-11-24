@@ -13,7 +13,7 @@ Multi-module Maven project that implements the Workshop Registration API.
 root            (pom, aggregator + parent)
 |- core         (pom, aggregator + parent)
 |  |- model-impl   implementations of Person, Instructor, Student, Workshop, Team
-|  `- logic-impl   WorkshopSystemImpl (+ JsonExporter), logging, e-mail validation, JSON export
+|  `- logic-impl   WorkshopSystemImpl (+ JsonExporter, CsvImporter), logging, e-mail validation, JSON export, CSV import
 `- app          Main + log4j2.xml, builds the uber jar workshop-cli.jar
 ```
 
@@ -53,11 +53,15 @@ This builds all modules in the right order and creates the uber jar
 ## Run the application
 
 ```
-java -jar app/target/workshop-cli.jar
+java -jar app/target/workshop-cli.jar students.csv
 ```
 
-It creates demo data, writes `instructors.json`, `students.json` and `teams.json`
-to the current folder and logs what it did.
+The students are read from a CSV file (header: `id,name,email`). If no argument is given,
+`students.csv` in the current folder is used. A demo `students.csv` is in the root folder.
+
+The application creates demo data, writes `instructors.json`, `students.json` and `teams.json`
+to the current folder and logs what it did. If the CSV file is missing or invalid, it logs the
+reason and exits with code 1.
 
 ## Run the tester
 
@@ -82,5 +86,6 @@ Expected last line: `RESULT: ALL OK`
 | Logging | Log4j 2 (`log4j-api` in logic-impl, `log4j-core` at runtime in app) | logic-impl, app |
 | E-mail validation | Apache Commons Validator | logic-impl |
 | JSON export | Jackson Databind | logic-impl |
+| CSV import (bonus) | Apache Commons CSV | logic-impl |
 
 All versions are properties in the root `pom.xml`.
