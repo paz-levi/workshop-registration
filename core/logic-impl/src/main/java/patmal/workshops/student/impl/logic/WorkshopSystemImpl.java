@@ -31,6 +31,7 @@ public class WorkshopSystemImpl implements WorkshopSystem {
     private static final EmailValidator EMAIL_VALIDATOR = EmailValidator.getInstance();
 
     private final JsonExporter jsonExporter = new JsonExporter();
+    private final CsvImporter csvImporter = new CsvImporter();
 
     private final LinkedHashMap<String, InstructorImpl> instructors = new LinkedHashMap<>();
     private final LinkedHashMap<String, StudentImpl> students = new LinkedHashMap<>();
@@ -243,5 +244,10 @@ public class WorkshopSystemImpl implements WorkshopSystem {
     public void exportTeamsDataToJson(File targetFileName) {
         jsonExporter.exportTeams(getTeams(), targetFileName);
         LOG.info("Exported teams data to {}", targetFileName);
+    }
+
+    @Override
+    public List<Student> importStudentDataFromFile(File source) {
+        return csvImporter.importStudents(this, source);
     }
 }
